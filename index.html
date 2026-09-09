@@ -80,7 +80,7 @@
 
                 <!-- Realtime Preview -->
                 <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                    <span class="text-zinc-400">現在選択中:</span>
+                    <span class="text-zinc-400">選択中の1本:</span>
                     <span id="previewText" class="font-bold text-amber-300">未選択</span>
                 </div>
 
@@ -96,13 +96,13 @@
             <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col h-full min-h-[400px]">
                 <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
                     <h2 class="font-bold text-base text-white"><i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文（1客分）</h2>
-                    <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 食</span>
+                    <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 本</span>
                 </div>
 
                 <div id="cartItemsContainer" class="flex-1 space-y-2 overflow-y-auto max-h-[300px]">
                     <div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2">
                         <i class="fa-solid fa-utensils text-2xl opacity-40"></i>
-                        <p class="text-xs">選択した商品がここに表示されます</p>
+                        <p class="text-xs">追加された串がここに一覧で表示されます</p>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@ function doPost(e) {
     }
     const now = new Date();
     data.items.forEach(item => {
-      sheet.appendRow([now, item.name, item.flavor, item.topping, false]);
+      sheet.appendRow([now, item.type, item.flavor, item.topping, false]);
     });
     sheet.appendRow([]);
     return ContentService.createTextOutput(JSON.stringify({ status: "success", deletedCount: deletedCount }))
@@ -258,7 +258,7 @@ function doPost(e) {
             if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
 
             cart.push({ ...currentOrder });
-            showToast(`${currentOrder.type} (${currentOrder.flavor}/${currentOrder.topping}) を追加`);
+            showToast(`${currentOrder.type} (${currentOrder.flavor}/${currentOrder.topping}) をリストに追加しました`);
             
             resetSelectionForm();
             renderCart();
@@ -280,7 +280,7 @@ function doPost(e) {
             const submitBtn = document.getElementById('submitOrderBtn');
             const badge = document.getElementById('cartCountBadge');
 
-            badge.textContent = `${cart.length} 食`;
+            badge.textContent = `${cart.length} 本`;
 
             if (cart.length === 0) {
                 container.innerHTML = '';
@@ -299,8 +299,8 @@ function doPost(e) {
                 el.className = "bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex items-center justify-between";
                 el.innerHTML = `
                     <div>
-                        <div class="font-bold text-sm text-zinc-100">${index + 1}. ${item.name}</div>
-                        <div class="text-xs text-zinc-400">味: <strong class="text-amber-300">${item.flavor}</strong> / トッピング: <strong class="text-zinc-200">${item.topping}</strong></div>
+                        <div class="font-bold text-sm text-amber-400">${index + 1}. ${item.type}</div>
+                        <div class="text-xs text-zinc-400">味: <strong class="text-zinc-200">${item.flavor}</strong> / トッピング: <strong class="text-zinc-200">${item.topping}</strong></div>
                     </div>
                     <button onclick="removeFromCart(${index})" class="text-zinc-500 hover:text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
                 `;
