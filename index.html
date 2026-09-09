@@ -3,163 +3,410 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>炭火串焼 注文レジ</title>
+    <title>炭火串焼 注文レジシステム</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #121212; color: #ffffff; }
-        .active { border-color: #f59e0b !important; background-color: #78350f !important; color: #fbbf24 !important; }
+        body { background-color: #0d0d0e; color: #f4f4f5; font-family: sans-serif; }
+        .wood-header { background-color: #24140b; background-image: radial-gradient(#3d2314 1px, transparent 1px); background-size: 16px 16px; }
+        .active-btn { border-color: #f59e0b !important; background-color: rgba(245, 158, 11, 0.2) !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
     </style>
 </head>
-<body class="p-4 max-w-4xl mx-auto">
+<body class="min-h-screen flex flex-col pb-10">
 
-    <h1 class="text-xl font-bold text-amber-500 mb-4">炭火串焼 注文レジ</h1>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- 選択エリア -->
-        <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800 space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-amber-400 mb-1">1. 種類</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" class="btn-type border border-zinc-700 bg-zinc-800 p-2 rounded text-sm" onclick="selectType('もも', this)">もも</button>
-                    <button type="button" class="btn-type border border-zinc-700 bg-zinc-800 p-2 rounded text-sm" onclick="selectType('ねぎま', this)">ねぎま</button>
-                    <button type="button" class="btn-type border border-zinc-700 bg-zinc-800 p-2 rounded text-sm" onclick="selectType('つくね', this)">つくね</button>
+    <!-- ヘッダー -->
+    <header class="wood-header border-b border-amber-900/60 sticky top-0 z-30 shadow-xl">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center font-black text-xl text-white border border-amber-400">鳥</div>
+                <div>
+                    <h1 class="font-black text-lg text-amber-400">炭火串焼 注文レジ</h1>
+                    <p class="text-xs text-amber-200/70">1客ごとの注文送信・スプシ自動記録</p>
                 </div>
             </div>
-
-            <div>
-                <label class="block text-xs font-bold text-amber-400 mb-1">2. 味</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" id="btn-tare" class="btn-flavor border border-zinc-700 bg-zinc-800 p-2 rounded text-sm" onclick="selectFlavor('たれ', this)">たれ</button>
-                    <button type="button" id="btn-shio" class="btn-flavor border border-zinc-700 bg-zinc-800 p-2 rounded text-sm" onclick="selectFlavor('塩', this)">塩</button>
-                </div>
+            <div class="flex items-center space-x-2">
+                <span id="gasStatusBadge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-950 text-red-400 border border-red-800">
+                    <span class="w-2 h-2 mr-1.5 rounded-full bg-red-500 animate-pulse"></span>GAS未設定
+                </span>
+                <button type="button" onclick="openGasModal()" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-700 rounded-lg text-xs font-bold transition">
+                    <i class="fa-solid fa-gear mr-1"></i>連携設定
+                </button>
             </div>
-
-            <div>
-                <label class="block text-xs font-bold text-amber-400 mb-1">3. トッピング</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" class="btn-topping border border-zinc-700 bg-zinc-800 p-2 rounded text-xs" onclick="selectTopping('マヨネーズ', this)">マヨネーズ</button>
-                    <button type="button" class="btn-topping border border-zinc-700 bg-zinc-800 p-2 rounded text-xs" onclick="selectTopping('ポッカレモン', this)">ポッカレモン</button>
-                    <button type="button" class="btn-topping border border-zinc-700 bg-zinc-800 p-2 rounded text-xs" onclick="selectTopping('粉チーズ', this)">粉チーズ</button>
-                    <button type="button" class="btn-topping border border-zinc-700 bg-zinc-800 p-2 rounded text-xs" onclick="selectTopping('七味', this)">七味</button>
-                    <button type="button" class="btn-topping border border-zinc-700 bg-zinc-800 p-2 rounded text-xs" onclick="selectTopping('なし', this)">なし</button>
-                </div>
-            </div>
-
-            <button type="button" onclick="addToList()" class="w-full bg-amber-600 hover:bg-amber-500 font-bold p-3 rounded-lg mt-4">
-                リストに追加する
-            </button>
         </div>
+    </header>
 
-        <!-- カート表示エリア -->
-        <div class="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex flex-col justify-between">
-            <div>
-                <div class="flex justify-between items-center border-b border-zinc-800 pb-2 mb-3">
-                    <h2 class="font-bold text-amber-400">注文リスト</h2>
-                    <span id="count" class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">0件</span>
+    <!-- メインコンテンツ -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- 左エリア：1客番号管理 & 串選択フォーム -->
+        <section class="lg:col-span-7 space-y-4">
+            
+            <!-- 客番（グループ）コントロール -->
+            <div class="bg-zinc-900 p-4 rounded-2xl border border-amber-900/40 flex items-center justify-between shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold text-amber-400">現在の客番:</span>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-zinc-500 font-bold text-sm">No.</span>
+                        <input type="number" id="customerNoInput" value="1" min="1" onchange="updateCustomerNo(this.value)" class="w-20 bg-zinc-950 border border-amber-500/50 rounded-lg px-2 py-1 text-amber-300 font-black text-xl text-center focus:outline-none focus:border-amber-400">
+                    </div>
                 </div>
-                
-                <div id="cartDisplay" class="space-y-2 max-h-80 overflow-y-auto">
-                    <p class="text-xs text-zinc-500 text-center py-8">選択して追加ボタンを押してください</p>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="adjustCustomerNo(-1)" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-bold border border-zinc-700">-1</button>
+                    <button type="button" onclick="adjustCustomerNo(1)" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-bold border border-zinc-700">+1</button>
                 </div>
             </div>
 
-            <button type="button" onclick="clearAll()" class="w-full bg-zinc-800 text-zinc-400 text-xs py-2 rounded mt-4 hover:bg-zinc-700">
-                すべてクリア
-            </button>
+            <!-- 選択メニュー -->
+            <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl space-y-5">
+                
+                <!-- 1. 種類選択 -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-400 mb-2">1. 種類を選択 <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="selectType('もも', this)" class="btn-type py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-bold hover:border-amber-500 transition">もも</button>
+                        <button type="button" onclick="selectType('ねぎま', this)" class="btn-type py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-bold hover:border-amber-500 transition flex flex-col items-center justify-center">
+                            <span>ねぎま</span><span class="text-[10px] text-amber-500 font-normal">たれ固定</span>
+                        </button>
+                        <button type="button" onclick="selectType('つくね', this)" class="btn-type py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-bold hover:border-amber-500 transition flex flex-col items-center justify-center">
+                            <span>つくね</span><span class="text-[10px] text-amber-500 font-normal">たれ固定</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 味選択 -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-400 mb-2">2. 味を選択 <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" id="btn-tare" onclick="selectFlavor('たれ', this)" class="btn-flavor py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-bold hover:border-amber-500 transition">たれ</button>
+                        <button type="button" id="btn-shio" onclick="selectFlavor('塩', this)" class="btn-flavor py-3 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-bold hover:border-amber-500 transition">塩</button>
+                    </div>
+                </div>
+
+                <!-- 3. トッピング選択 -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-400 mb-2">3. トッピングを選択 <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <button type="button" onclick="selectTopping('マヨネーズ', this)" class="btn-topping py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-semibold text-xs hover:border-amber-500 transition">マヨネーズ</button>
+                        <button type="button" onclick="selectTopping('ポッカレモン', this)" class="btn-topping py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-semibold text-xs hover:border-amber-500 transition">ポッカレモン</button>
+                        <button type="button" onclick="selectTopping('粉チーズ', this)" class="btn-topping py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-semibold text-xs hover:border-amber-500 transition">粉チーズ</button>
+                        <button type="button" onclick="selectTopping('七味', this)" class="btn-topping py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-semibold text-xs hover:border-amber-500 transition">七味</button>
+                        <button type="button" onclick="selectTopping('なし', this)" class="btn-topping py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 text-zinc-200 font-semibold text-xs hover:border-amber-500 transition">なし</button>
+                    </div>
+                </div>
+
+                <!-- プレビュー -->
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
+                    <span class="text-zinc-400">現在選択中:</span>
+                    <span id="previewText" class="font-bold text-amber-300">未選択 / 未選択 / 未選択</span>
+                </div>
+
+                <!-- カート追加ボタン -->
+                <button type="button" onclick="addItemToCart()" class="w-full py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-base rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i> カートに追加する
+                </button>
+            </div>
+        </section>
+
+        <!-- 右エリア：1客分注文カート & スプシ送信 -->
+        <section class="lg:col-span-5 space-y-4">
+            <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col justify-between min-h-[460px]">
+                <div>
+                    <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
+                        <h2 class="font-bold text-base text-white flex items-center">
+                            <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>No.<span id="cartCustomerNo">1</span> の注文リスト
+                        </h2>
+                        <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 本</span>
+                    </div>
+
+                    <!-- リスト描画エリア -->
+                    <div id="cartList" class="space-y-2 max-h-[360px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <div class="border-t border-zinc-800 pt-4 mt-4 space-y-2">
+                    <!-- 1客決定＆スプシ送信ボタン -->
+                    <button type="button" id="submitOrderBtn" onclick="submitOrder()" disabled class="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-paper-plane"></i> 注文決定・スプシ送信
+                    </button>
+                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">この客のリストを全消去</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- GAS URL設定モーダル -->
+    <div id="gasModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-xl w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                <h3 class="font-bold text-amber-400">Google Apps Script 連携設定</h3>
+                <button type="button" onclick="closeGasModal()" class="text-zinc-400 text-lg">&times;</button>
+            </div>
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-zinc-300">Web アプリ URL</label>
+                <div class="flex gap-2">
+                    <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 bg-zinc-950 border border-zinc-700 rounded p-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <button type="button" onclick="saveGasUrl()" class="bg-amber-600 text-white px-4 py-2 rounded text-xs font-bold">保存</button>
+                </div>
+            </div>
+            
+            <div class="bg-zinc-950 p-3 rounded-lg border border-zinc-800 text-[11px] text-zinc-400 space-y-2">
+                <p class="font-bold text-amber-300">【GASコード】以下のスクリプトをGAS側に貼り付けてデプロイしてください：</p>
+                <pre class="bg-zinc-900 p-2 rounded text-[10px] text-zinc-300 overflow-x-auto select-all"><code>function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  var customerNo = "No." + data.customerNo;
+  var timestamp = data.timestamp;
+  
+  data.items.forEach(function(item) {
+    sheet.appendRow([timestamp, customerNo, item.type, item.flavor, item.topping]);
+  });
+  
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</code></pre>
+            </div>
+
+            <button type="button" onclick="closeGasModal()" class="w-full py-2 bg-zinc-800 text-xs font-bold rounded text-zinc-300">閉じる</button>
         </div>
     </div>
 
+    <!-- トースト通知 -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-zinc-800 border border-amber-500 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none text-xs font-bold"></div>
+
     <script>
-        // 注文データを保持する配列（グローバル）
-        var cartData = [];
-        
-        // 現在選択中の状態
-        var selected = { type: '', flavor: '', topping: '' };
+        // グローバル変数定義
+        var cart = [];
+        var currentOrder = { type: '', flavor: '', topping: '' };
+        var customerNo = 1;
+        var gasUrl = localStorage.getItem('yakitori_gas_url') || '';
 
-        function selectType(val, el) {
-            selected.type = val;
-            document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+        window.onload = function() {
+            initGasStatus();
+            renderCart();
+        };
 
-            // ねぎま・つくねは「たれ」固定
-            var shioBtn = document.getElementById('btn-shio');
-            var tareBtn = document.getElementById('btn-tare');
-            if (val === 'ねぎま' || val === 'つくね') {
-                selectFlavor('たれ', tareBtn);
-                shioBtn.disabled = true;
-                shioBtn.classList.add('opacity-30');
+        function initGasStatus() {
+            var badge = document.getElementById('gasStatusBadge');
+            var urlInput = document.getElementById('gasUrlInput');
+            if (gasUrl) {
+                if(urlInput) urlInput.value = gasUrl;
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800";
+                badge.innerHTML = '<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span>GAS設定完了';
             } else {
-                shioBtn.disabled = false;
-                shioBtn.classList.remove('opacity-30');
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-950 text-red-400 border border-red-800";
+                badge.innerHTML = '<span class="w-2 h-2 mr-1.5 rounded-full bg-red-500 animate-pulse"></span>GAS未設定';
             }
         }
 
-        function selectFlavor(val, el) {
-            selected.flavor = val;
-            document.querySelectorAll('.btn-flavor').forEach(b => b.classList.remove('active'));
-            if(el) el.classList.add('active');
+        function adjustCustomerNo(val) {
+            customerNo = Math.max(1, customerNo + val);
+            document.getElementById('customerNoInput').value = customerNo;
+            document.getElementById('cartCustomerNo').textContent = customerNo;
         }
 
-        function selectTopping(val, el) {
-            selected.topping = val;
-            document.querySelectorAll('.btn-topping').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+        function updateCustomerNo(val) {
+            customerNo = Math.max(1, parseInt(val) || 1);
+            document.getElementById('customerNoInput').value = customerNo;
+            document.getElementById('cartCustomerNo').textContent = customerNo;
         }
 
-        // リスト追加処理
-        function addToList() {
-            if (!selected.type || !selected.flavor || !selected.topping) {
-                alert('「種類」「味」「トッピング」をすべて選択してください。');
+        function updatePreview() {
+            var preview = document.getElementById('previewText');
+            var t = currentOrder.type || '未選択';
+            var f = currentOrder.flavor || '未選択';
+            var top = currentOrder.topping || '未選択';
+            preview.textContent = t + ' / ' + f + ' / ' + top;
+        }
+
+        function selectType(typeName, el) {
+            currentOrder.type = typeName;
+            document.querySelectorAll('.btn-type').forEach(b => b.classList.remove('active-btn'));
+            el.classList.add('active-btn');
+
+            var btnShio = document.getElementById('btn-shio');
+            var btnTare = document.getElementById('btn-tare');
+
+            if (typeName === 'ねぎま' || typeName === 'つくね') {
+                currentOrder.flavor = 'たれ';
+                document.querySelectorAll('.btn-flavor').forEach(b => b.classList.remove('active-btn'));
+                btnTare.classList.add('active-btn');
+                btnShio.disabled = true;
+                btnShio.classList.add('opacity-30');
+            } else {
+                btnShio.disabled = false;
+                btnShio.classList.remove('opacity-30');
+            }
+            updatePreview();
+        }
+
+        function selectFlavor(flavorName, el) {
+            if ((currentOrder.type === 'ねぎま' || currentOrder.type === 'つくね') && flavorName === '塩') {
+                showToast('ねぎま・つくねは「たれ」固定です');
                 return;
             }
-
-            // 配列に末尾追加
-            cartData.push({
-                type: selected.type,
-                flavor: selected.flavor,
-                topping: selected.topping
-            });
-
-            // 画面を更新
-            updateCartDisplay();
+            currentOrder.flavor = flavorName;
+            document.querySelectorAll('.btn-flavor').forEach(b => b.classList.remove('active-btn'));
+            el.classList.add('active-btn');
+            updatePreview();
         }
 
-        // 画面描画処理
-        function updateCartDisplay() {
-            var container = document.getElementById('cartDisplay');
-            var countEl = document.getElementById('count');
-            
-            countEl.textContent = cartData.length + '件';
+        function selectTopping(toppingName, el) {
+            currentOrder.topping = toppingName;
+            document.querySelectorAll('.btn-topping').forEach(b => b.classList.remove('active-btn'));
+            el.classList.add('active-btn');
+            updatePreview();
+        }
 
-            if (cartData.length === 0) {
-                container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-8">選択して追加ボタンを押してください</p>';
+        // カート追加処理
+        function addItemToCart() {
+            if (!currentOrder.type) return showToast('1. 種類を選択してください');
+            if (!currentOrder.flavor) return showToast('2. 味を選択してください');
+            if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
+
+            // 1件ずつ配列に追加
+            cart.push({
+                type: currentOrder.type,
+                flavor: currentOrder.flavor,
+                topping: currentOrder.topping
+            });
+
+            showToast(currentOrder.type + ' をカートに追加しました');
+            resetSelectionForm();
+            renderCart();
+        }
+
+        function resetSelectionForm() {
+            currentOrder = { type: '', flavor: '', topping: '' };
+            document.querySelectorAll('.btn-type, .btn-flavor, .btn-topping').forEach(b => {
+                b.classList.remove('active-btn');
+                b.disabled = false;
+                b.classList.remove('opacity-30');
+            });
+            updatePreview();
+        }
+
+        // カート描画処理
+        function renderCart() {
+            var listContainer = document.getElementById('cartList');
+            var submitBtn = document.getElementById('submitOrderBtn');
+            var badge = document.getElementById('cartCountBadge');
+
+            badge.textContent = cart.length + ' 本';
+
+            if (cart.length === 0) {
+                listContainer.innerHTML = '<div class="h-44 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl"><i class="fa-solid fa-utensils text-2xl opacity-40"></i><p class="text-xs">追加した串がここに並びます</p></div>';
+                submitBtn.disabled = true;
+                submitBtn.className = "w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed";
                 return;
             }
 
             var html = '';
-            for (var i = 0; i < cartData.length; i++) {
-                var item = cartData[i];
-                html += '<div class="bg-zinc-950 p-3 rounded border border-zinc-800 flex justify-between items-center text-sm">';
-                html += '  <div>';
-                html += '    <span class="font-bold text-amber-300">' + (i + 1) + '. ' + item.type + '</span>';
-                html += '    <span class="text-xs bg-zinc-800 px-1.5 py-0.5 rounded ml-2">' + item.flavor + '</span>';
-                html += '    <div class="text-xs text-zinc-400 mt-1">トッピング: ' + item.topping + '</div>';
+            for (var i = 0; i < cart.length; i++) {
+                var item = cart[i];
+                html += '<div class="bg-zinc-950 border border-amber-900/40 rounded-xl p-3 flex items-center justify-between shadow-md">';
+                html += '  <div class="flex items-center space-x-3">';
+                html += '    <div class="w-6 h-6 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-black text-xs shrink-0">' + (i + 1) + '</div>';
+                html += '    <div>';
+                html += '      <div class="font-black text-sm text-amber-300 flex items-center gap-2">';
+                html += '        <span>' + item.type + '</span>';
+                html += '        <span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-0.5 rounded border border-zinc-700 font-normal">' + item.flavor + '</span>';
+                html += '      </div>';
+                html += '      <div class="text-xs text-zinc-400 mt-0.5">トッピング: <span class="text-zinc-200 font-bold">' + item.topping + '</span></div>';
+                html += '    </div>';
                 html += '  </div>';
-                html += '  <button type="button" onclick="removeItem(' + i + ')" class="text-zinc-500 hover:text-red-400 text-xs px-2 py-1">削除</button>';
+                html += '  <button type="button" onclick="removeFromCart(' + i + ')" class="text-zinc-500 hover:text-red-400 p-2 rounded-lg transition"><i class="fa-solid fa-trash-can text-sm"></i></button>';
                 html += '</div>';
             }
 
-            container.innerHTML = html;
+            listContainer.innerHTML = html;
+
+            submitBtn.disabled = false;
+            submitBtn.className = "w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-base rounded-xl shadow-lg border border-emerald-400 flex items-center justify-center gap-2 cursor-pointer transition";
         }
 
-        function removeItem(index) {
-            cartData.splice(index, 1);
-            updateCartDisplay();
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            renderCart();
         }
 
-        function clearAll() {
-            cartData = [];
-            updateCartDisplay();
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        // 1客分の注文をスプシに送信
+        async function submitOrder() {
+            if (cart.length === 0) return;
+            if (!gasUrl) {
+                showToast('GAS WebアプリURLが未設定です');
+                openGasModal();
+                return;
+            }
+
+            var btn = document.getElementById('submitOrderBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> 送信中...';
+
+            var now = new Date();
+            var timeStr = now.getFullYear() + '/' + 
+                          ('0' + (now.getMonth() + 1)).slice(-2) + '/' + 
+                          ('0' + now.getDate()).slice(-2) + ' ' + 
+                          ('0' + now.getHours()).slice(-2) + ':' + 
+                          ('0' + now.getMinutes()).slice(-2) + ':' + 
+                          ('0' + now.getSeconds()).slice(-2);
+
+            var payload = {
+                customerNo: customerNo,
+                timestamp: timeStr,
+                items: cart
+            };
+
+            try {
+                await fetch(gasUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload)
+                });
+
+                showToast('No.' + customerNo + ' の注文をスプシに送信しました！');
+                
+                // 送信完了後に自動でカートクリア＆客番を+1
+                cart = [];
+                renderCart();
+                resetSelectionForm();
+                adjustCustomerNo(1);
+
+            } catch (err) {
+                showToast('送信エラーが発生しました');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> 注文決定・スプシ送信';
+            }
+        }
+
+        function openGasModal() { document.getElementById('gasModal').classList.remove('hidden'); }
+        function closeGasModal() { document.getElementById('gasModal').classList.add('hidden'); }
+
+        function saveGasUrl() {
+            var input = document.getElementById('gasUrlInput').value.trim();
+            if (input) {
+                gasUrl = input;
+                localStorage.setItem('yakitori_gas_url', input);
+                initGasStatus();
+                closeGasModal();
+                showToast('URLを保存しました');
+            }
+        }
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(function() { toast.classList.add('opacity-0', 'pointer-events-none'); }, 2500);
         }
     </script>
 </body>
