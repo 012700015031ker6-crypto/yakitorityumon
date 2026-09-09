@@ -12,7 +12,7 @@
         .wood-texture { background-color: #24140b; background-image: radial-gradient(#3d2314 1px, transparent 1px); background-size: 16px 16px; }
         .active-btn { border-color: #fbbf24 !important; background-color: rgba(251, 191, 36, 0.2) !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
         
-        /* スクロールバーのデザイン最適化 */
+        /* カスタムスクロールバー */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #18181b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
@@ -84,9 +84,9 @@
                     </div>
                 </div>
 
-                <!-- Realtime Preview -->
+                <!-- Preview -->
                 <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                    <span class="text-zinc-400">選択中:</span>
+                    <span class="text-zinc-400">現在選択中の1個:</span>
                     <span id="previewText" class="font-bold text-amber-300">未選択</span>
                 </div>
 
@@ -100,24 +100,26 @@
         <!-- Cart Section -->
         <section class="lg:col-span-5 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col">
-                <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
-                    <h2 class="font-bold text-base text-white"><i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文（1客分）</h2>
+                <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
+                    <h2 class="font-bold text-base text-white flex items-center">
+                        <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文リスト
+                    </h2>
                     <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 食</span>
                 </div>
 
-                <!-- List Container (高さ固定＆スクロール可能に修正) -->
-                <div id="cartItemsContainer" class="space-y-2 overflow-y-auto max-h-[360px] pr-1 min-h-[160px]">
-                    <div id="cartEmptyState" class="h-36 flex flex-col items-center justify-center text-zinc-500 space-y-2">
+                <!-- 1個ずつ見やすい個別リスト配置 -->
+                <div id="cartItemsContainer" class="space-y-2 overflow-y-auto max-h-[420px] pr-1 min-h-[200px]">
+                    <div id="cartEmptyState" class="h-44 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl">
                         <i class="fa-solid fa-utensils text-2xl opacity-40"></i>
-                        <p class="text-xs">追加された串がここに表示されます</p>
+                        <p class="text-xs">追加した商品が1個ずつここに表示されます</p>
                     </div>
                 </div>
 
-                <div class="border-t border-zinc-800 pt-4 mt-4 space-y-2">
+                <div class="border-t border-zinc-800 pt-4 mt-3 space-y-2">
                     <button type="button" id="submitOrderBtn" onclick="submitOrder()" disabled class="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-paper-plane"></i> 注文を確定して送信
                     </button>
-                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストをクリア</button>
+                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストをすべて消去</button>
                 </div>
             </div>
         </section>
@@ -265,7 +267,7 @@ function doPost(e) {
             if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
 
             cart.push({ ...currentOrder });
-            showToast(`${currentOrder.type} (${currentOrder.flavor}/${currentOrder.topping}) を追加`);
+            showToast(`${currentOrder.type} を追加しました`);
             
             resetSelectionForm();
             renderCart();
@@ -301,16 +303,28 @@ function doPost(e) {
             emptyState.classList.add('hidden');
             container.innerHTML = '';
 
-            // リスト描画（item.typeを正確に参照）
+            // 1個ずつ分かりやすく視覚化したカード表示
             cart.forEach((item, index) => {
                 const el = document.createElement('div');
-                el.className = "bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex items-center justify-between";
+                el.className = "bg-zinc-950 border border-amber-900/40 hover:border-amber-500/60 rounded-xl p-3 flex items-center justify-between shadow-md transition";
                 el.innerHTML = `
-                    <div>
-                        <div class="font-bold text-sm text-amber-400">${index + 1}. ${item.type}</div>
-                        <div class="text-xs text-zinc-400">味: <strong class="text-zinc-200">${item.flavor}</strong> / トッピング: <strong class="text-zinc-200">${item.topping}</strong></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-black text-xs shrink-0">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <div class="font-black text-sm text-amber-300 flex items-center gap-2">
+                                <span>${item.type}</span>
+                                <span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-0.5 rounded border border-zinc-700 font-normal">${item.flavor}</span>
+                            </div>
+                            <div class="text-xs text-zinc-400 mt-0.5">
+                                トッピング: <span class="text-zinc-200 font-bold">${item.topping}</span>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="removeFromCart(${index})" class="text-zinc-500 hover:text-red-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                    <button onclick="removeFromCart(${index})" class="text-zinc-500 hover:text-red-400 p-2 rounded-lg hover:bg-zinc-900 transition" title="削除">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
                 `;
                 container.appendChild(el);
             });
