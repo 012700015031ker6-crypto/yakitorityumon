@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>炭火串焼 注文システム</title>
+    <title>炭火串焼 注文レジ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
@@ -12,11 +12,9 @@
         .wood-texture { background-color: #24140b; background-image: radial-gradient(#3d2314 1px, transparent 1px); background-size: 16px 16px; }
         .active-btn { border-color: #fbbf24 !important; background-color: rgba(251, 191, 36, 0.2) !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
         
-        /* カスタムスクロールバー */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #18181b; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-12">
@@ -49,7 +47,7 @@
         <section class="lg:col-span-7 space-y-4">
             <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl space-y-5">
                 
-                <!-- Step 1 -->
+                <!-- 1. 種類選択 -->
                 <div>
                     <label class="block text-xs font-bold text-amber-400 mb-2">1. 種類を選択 <span class="text-red-400">*</span></label>
                     <div class="grid grid-cols-3 gap-3">
@@ -63,7 +61,7 @@
                     </div>
                 </div>
 
-                <!-- Step 2 -->
+                <!-- 2. 味選択 -->
                 <div>
                     <label class="block text-xs font-bold text-amber-400 mb-2">2. 味を選択 <span class="text-red-400">*</span></label>
                     <div class="grid grid-cols-2 gap-3">
@@ -72,7 +70,7 @@
                     </div>
                 </div>
 
-                <!-- Step 3 -->
+                <!-- 3. トッピング選択 -->
                 <div>
                     <label class="block text-xs font-bold text-amber-400 mb-2">3. トッピングを選択 <span class="text-red-400">*</span></label>
                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -86,8 +84,8 @@
 
                 <!-- Preview -->
                 <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                    <span class="text-zinc-400">現在選択中の1個:</span>
-                    <span id="previewText" class="font-bold text-amber-300">未選択</span>
+                    <span class="text-zinc-400">現在選択中:</span>
+                    <span id="previewText" class="font-bold text-amber-300">未選択 / 未選択 / 未選択</span>
                 </div>
 
                 <!-- Add Button -->
@@ -102,16 +100,16 @@
             <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col">
                 <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
                     <h2 class="font-bold text-base text-white flex items-center">
-                        <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文リスト
+                        <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文（1客分）
                     </h2>
                     <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 食</span>
                 </div>
 
-                <!-- 1個ずつ見やすい個別リスト配置 -->
-                <div id="cartItemsContainer" class="space-y-2 overflow-y-auto max-h-[420px] pr-1 min-h-[200px]">
-                    <div id="cartEmptyState" class="h-44 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl">
+                <!-- リスト一覧エリア -->
+                <div id="cartList" class="space-y-2 overflow-y-auto max-h-[400px] min-h-[200px] pr-1">
+                    <div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl">
                         <i class="fa-solid fa-utensils text-2xl opacity-40"></i>
-                        <p class="text-xs">追加した商品が1個ずつここに表示されます</p>
+                        <p class="text-xs">追加された串がここに表示されます</p>
                     </div>
                 </div>
 
@@ -119,18 +117,18 @@
                     <button type="button" id="submitOrderBtn" onclick="submitOrder()" disabled class="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-paper-plane"></i> 注文を確定して送信
                     </button>
-                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストをすべて消去</button>
+                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストをクリア</button>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- GAS Modal -->
+    <!-- Modal & Toast -->
     <div id="gasModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-xl w-full p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
-                <h3 class="font-bold text-amber-400">連携設定 & GASコード</h3>
+                <h3 class="font-bold text-amber-400">連携設定</h3>
                 <button onclick="closeGasModal()" class="text-zinc-400 text-lg">&times;</button>
             </div>
             <div>
@@ -140,105 +138,67 @@
                     <button onclick="saveGasUrl()" class="bg-amber-600 text-white px-4 py-2 rounded text-xs font-bold">保存</button>
                 </div>
             </div>
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs font-bold text-amber-400">貼り付け用 GASコード</span>
-                    <button onclick="copyGasCode()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-2 py-1 rounded border border-amber-700">コピー</button>
-                </div>
-                <pre id="gasCodeText" class="bg-zinc-950 p-3 rounded border border-zinc-800 text-[10px] text-emerald-400 overflow-x-auto select-all">
-function doPost(e) {
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName("注文一覧") || ss.getActiveSheet();
-    let summarySheet = ss.getSheetByName("集計");
-    if (!summarySheet) {
-      summarySheet = ss.insertSheet("集計");
-      summarySheet.getRange("A1").setValue("累計販売食数");
-      summarySheet.getRange("B1").setValue(0);
-    }
-    const data = JSON.parse(e.postData.contents);
-    const lastRow = sheet.getLastRow();
-    let deletedCount = 0;
-    for (let r = lastRow; r >= 2; r--) {
-      const isChecked = sheet.getRange(r, 5).getValue();
-      if (isChecked === true || isChecked === "TRUE") {
-        deletedCount++;
-        sheet.deleteRow(r);
-      }
-    }
-    if (deletedCount > 0) {
-      const currentTotal = Number(summarySheet.getRange("B1").getValue()) || 0;
-      summarySheet.getRange("B1").setValue(currentTotal + deletedCount);
-    }
-    const now = new Date();
-    data.items.forEach(item => {
-      sheet.appendRow([now, item.type, item.flavor, item.topping, false]);
-    });
-    sheet.appendRow([]);
-    return ContentService.createTextOutput(JSON.stringify({ status: "success", deletedCount: deletedCount }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-                </pre>
-            </div>
             <button onclick="closeGasModal()" class="w-full py-2 bg-zinc-800 text-xs font-bold rounded text-zinc-300">閉じる</button>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 bg-zinc-800 border border-amber-500 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none text-xs font-bold"></div>
 
     <script>
-        let currentOrder = { type: null, flavor: null, topping: null };
-        let cart = [];
-        let gasUrl = localStorage.getItem('yakitori_gas_url') || '';
+        // グローバル変数として注文カートを保持（ボタンを押すたびにクリアされないようにする）
+        var cart = [];
+        var currentOrder = { type: null, flavor: null, topping: null };
+        var gasUrl = localStorage.getItem('yakitori_gas_url') || '';
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = function() {
             initGasStatus();
             updatePreview();
-        });
+            renderCart();
+        };
 
         function initGasStatus() {
-            const badge = document.getElementById('gasStatusBadge');
-            const urlInput = document.getElementById('gasUrlInput');
+            var badge = document.getElementById('gasStatusBadge');
+            var urlInput = document.getElementById('gasUrlInput');
             if (gasUrl) {
-                urlInput.value = gasUrl;
+                if(urlInput) urlInput.value = gasUrl;
                 badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800";
-                badge.innerHTML = `<span class="w-2 h-2 mr-2 rounded-full bg-emerald-400"></span>GAS設定完了`;
+                badge.innerHTML = '<span class="w-2 h-2 mr-2 rounded-full bg-emerald-400"></span>GAS設定完了';
             } else {
                 badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-950 text-red-400 border border-red-800";
-                badge.innerHTML = `<span class="w-2 h-2 mr-2 rounded-full bg-red-500 animate-pulse"></span>GAS未設定`;
+                badge.innerHTML = '<span class="w-2 h-2 mr-2 rounded-full bg-red-500 animate-pulse"></span>GAS未設定';
             }
         }
 
         function updatePreview() {
-            const preview = document.getElementById('previewText');
-            const t = currentOrder.type || '未選択';
-            const f = currentOrder.flavor || '未選択';
-            const top = currentOrder.topping || '未選択';
-            preview.textContent = `${t} / ${f} / ${top}`;
+            var preview = document.getElementById('previewText');
+            var t = currentOrder.type || '未選択';
+            var f = currentOrder.flavor || '未選択';
+            var top = currentOrder.topping || '未選択';
+            preview.textContent = t + ' / ' + f + ' / ' + top;
         }
 
         function selectType(typeName) {
             currentOrder.type = typeName;
-            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById(`btn-type-${typeName}`)?.classList.add('active-btn');
+            document.querySelectorAll('.type-btn').forEach(function(b) { b.classList.remove('active-btn'); });
+            var btn = document.getElementById('btn-type-' + typeName);
+            if(btn) btn.classList.add('active-btn');
 
-            const btnShio = document.getElementById('btn-flavor-塩');
-            const btnTare = document.getElementById('btn-flavor-たれ');
+            var btnShio = document.getElementById('btn-flavor-塩');
+            var btnTare = document.getElementById('btn-flavor-たれ');
 
             if (typeName === 'ねぎま' || typeName === 'つくね') {
                 currentOrder.flavor = 'たれ';
-                btnTare.classList.add('active-btn');
-                btnShio.classList.remove('active-btn');
-                btnShio.disabled = true;
-                btnShio.classList.add('opacity-40');
+                if(btnTare) btnTare.classList.add('active-btn');
+                if(btnShio) {
+                    btnShio.classList.remove('active-btn');
+                    btnShio.disabled = true;
+                    btnShio.classList.add('opacity-40');
+                }
             } else {
-                btnShio.disabled = false;
-                btnShio.classList.remove('opacity-40');
+                if(btnShio) {
+                    btnShio.disabled = false;
+                    btnShio.classList.remove('opacity-40');
+                }
             }
             updatePreview();
         }
@@ -249,15 +209,17 @@ function doPost(e) {
                 return;
             }
             currentOrder.flavor = flavorName;
-            document.querySelectorAll('.flavor-btn').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById(`btn-flavor-${flavorName}`)?.classList.add('active-btn');
+            document.querySelectorAll('.flavor-btn').forEach(function(b) { b.classList.remove('active-btn'); });
+            var btn = document.getElementById('btn-flavor-' + flavorName);
+            if(btn) btn.classList.add('active-btn');
             updatePreview();
         }
 
         function selectTopping(toppingName) {
             currentOrder.topping = toppingName;
-            document.querySelectorAll('.topping-btn').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById(`btn-topping-${toppingName}`)?.classList.add('active-btn');
+            document.querySelectorAll('.topping-btn').forEach(function(b) { b.classList.remove('active-btn'); });
+            var btn = document.getElementById('btn-topping-' + toppingName);
+            if(btn) btn.classList.add('active-btn');
             updatePreview();
         }
 
@@ -266,16 +228,21 @@ function doPost(e) {
             if (!currentOrder.flavor) return showToast('2. 味を選択してください');
             if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
 
-            cart.push({ ...currentOrder });
-            showToast(`${currentOrder.type} を追加しました`);
-            
+            // 配列に末尾追加
+            cart.push({
+                type: currentOrder.type,
+                flavor: currentOrder.flavor,
+                topping: currentOrder.topping
+            });
+
+            showToast(currentOrder.type + ' を追加しました');
             resetSelectionForm();
             renderCart();
         }
 
         function resetSelectionForm() {
             currentOrder = { type: null, flavor: null, topping: null };
-            document.querySelectorAll('.type-btn, .flavor-btn, .topping-btn').forEach(b => {
+            document.querySelectorAll('.type-btn, .flavor-btn, .topping-btn').forEach(function(b) {
                 b.classList.remove('active-btn');
                 b.disabled = false;
                 b.classList.remove('opacity-40');
@@ -283,51 +250,43 @@ function doPost(e) {
             updatePreview();
         }
 
+        // リスト再描画処理
         function renderCart() {
-            const container = document.getElementById('cartItemsContainer');
-            const emptyState = document.getElementById('cartEmptyState');
-            const submitBtn = document.getElementById('submitOrderBtn');
-            const badge = document.getElementById('cartCountBadge');
+            var listContainer = document.getElementById('cartList');
+            var submitBtn = document.getElementById('submitOrderBtn');
+            var badge = document.getElementById('cartCountBadge');
 
-            badge.textContent = `${cart.length} 食`;
+            if (!listContainer) return;
+
+            badge.textContent = cart.length + ' 食';
 
             if (cart.length === 0) {
-                container.innerHTML = '';
-                container.appendChild(emptyState);
-                emptyState.classList.remove('hidden');
+                listContainer.innerHTML = '<div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl"><i class="fa-solid fa-utensils text-2xl opacity-40"></i><p class="text-xs">追加された串がここに表示されます</p></div>';
                 submitBtn.disabled = true;
                 submitBtn.className = "w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed";
                 return;
             }
 
-            emptyState.classList.add('hidden');
-            container.innerHTML = '';
+            var html = '';
+            for (var i = 0; i < cart.length; i++) {
+                var item = cart[i];
+                // item.type を直接参照して undefined を解消
+                html += '<div class="bg-zinc-950 border border-amber-900/40 rounded-xl p-3 flex items-center justify-between shadow-md">';
+                html += '  <div class="flex items-center space-x-3">';
+                html += '    <div class="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-black text-xs shrink-0">' + (i + 1) + '</div>';
+                html += '    <div>';
+                html += '      <div class="font-black text-sm text-amber-300 flex items-center gap-2">';
+                html += '        <span>' + item.type + '</span>';
+                html += '        <span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-0.5 rounded border border-zinc-700 font-normal">' + item.flavor + '</span>';
+                html += '      </div>';
+                html += '      <div class="text-xs text-zinc-400 mt-0.5">トッピング: <span class="text-zinc-200 font-bold">' + item.topping + '</span></div>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '  <button type="button" onclick="removeFromCart(' + i + ')" class="text-zinc-500 hover:text-red-400 p-2 rounded-lg hover:bg-zinc-900 transition"><i class="fa-solid fa-trash-can text-sm"></i></button>';
+                html += '</div>';
+            }
 
-            // 1個ずつ分かりやすく視覚化したカード表示
-            cart.forEach((item, index) => {
-                const el = document.createElement('div');
-                el.className = "bg-zinc-950 border border-amber-900/40 hover:border-amber-500/60 rounded-xl p-3 flex items-center justify-between shadow-md transition";
-                el.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-black text-xs shrink-0">
-                            ${index + 1}
-                        </div>
-                        <div>
-                            <div class="font-black text-sm text-amber-300 flex items-center gap-2">
-                                <span>${item.type}</span>
-                                <span class="bg-zinc-800 text-zinc-300 text-[10px] px-2 py-0.5 rounded border border-zinc-700 font-normal">${item.flavor}</span>
-                            </div>
-                            <div class="text-xs text-zinc-400 mt-0.5">
-                                トッピング: <span class="text-zinc-200 font-bold">${item.topping}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="removeFromCart(${index})" class="text-zinc-500 hover:text-red-400 p-2 rounded-lg hover:bg-zinc-900 transition" title="削除">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                `;
-                container.appendChild(el);
-            });
+            listContainer.innerHTML = html;
 
             submitBtn.disabled = false;
             submitBtn.className = "w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-base rounded-xl shadow-lg border border-emerald-400 flex items-center justify-center gap-2 cursor-pointer transition";
@@ -351,18 +310,18 @@ function doPost(e) {
                 return;
             }
 
-            const btn = document.getElementById('submitOrderBtn');
+            var btn = document.getElementById('submitOrderBtn');
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 送信中...`;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> 送信中...';
 
             try {
-                const response = await fetch(gasUrl, {
+                var response = await fetch(gasUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ items: cart })
                 });
 
-                const result = await response.json();
+                var result = await response.json();
                 if (result.status === 'success') {
                     showToast('スプレッドシートへ送信が完了しました！');
                     cart = [];
@@ -372,10 +331,10 @@ function doPost(e) {
                     throw new Error(result.message);
                 }
             } catch (err) {
-                showToast(`送信エラー: ${err.message}`);
+                showToast('送信エラー: ' + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> 注文を確定して送信`;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> 注文を確定して送信';
             }
         }
 
@@ -383,7 +342,7 @@ function doPost(e) {
         function closeGasModal() { document.getElementById('gasModal').classList.add('hidden'); }
 
         function saveGasUrl() {
-            const input = document.getElementById('gasUrlInput').value.trim();
+            var input = document.getElementById('gasUrlInput').value.trim();
             if (input) {
                 gasUrl = input;
                 localStorage.setItem('yakitori_gas_url', input);
@@ -393,16 +352,11 @@ function doPost(e) {
             }
         }
 
-        function copyGasCode() {
-            const code = document.getElementById('gasCodeText').innerText;
-            navigator.clipboard.writeText(code).then(() => showToast('GASコードをコピーしました'));
-        }
-
         function showToast(msg) {
-            const toast = document.getElementById('toast');
+            var toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2500);
+            setTimeout(function() { toast.classList.add('opacity-0', 'pointer-events-none'); }, 2500);
         }
     </script>
 </body>
