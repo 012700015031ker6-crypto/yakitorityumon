@@ -11,6 +11,12 @@
         body { background-color: #0f0f10; color: #f4f4f5; font-family: 'Noto Sans JP', sans-serif; }
         .wood-texture { background-color: #24140b; background-image: radial-gradient(#3d2314 1px, transparent 1px); background-size: 16px 16px; }
         .active-btn { border-color: #fbbf24 !important; background-color: rgba(251, 191, 36, 0.2) !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+        
+        /* スクロールバーのデザイン最適化 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #18181b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col pb-12">
@@ -37,7 +43,7 @@
     </header>
 
     <!-- Main -->
-    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- Selection Form -->
         <section class="lg:col-span-7 space-y-4">
@@ -80,7 +86,7 @@
 
                 <!-- Realtime Preview -->
                 <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
-                    <span class="text-zinc-400">選択中の1本:</span>
+                    <span class="text-zinc-400">選択中:</span>
                     <span id="previewText" class="font-bold text-amber-300">未選択</span>
                 </div>
 
@@ -93,16 +99,17 @@
 
         <!-- Cart Section -->
         <section class="lg:col-span-5 space-y-4">
-            <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col h-full min-h-[400px]">
+            <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col">
                 <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
                     <h2 class="font-bold text-base text-white"><i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文（1客分）</h2>
-                    <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 本</span>
+                    <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 食</span>
                 </div>
 
-                <div id="cartItemsContainer" class="flex-1 space-y-2 overflow-y-auto max-h-[300px]">
-                    <div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2">
+                <!-- List Container (高さ固定＆スクロール可能に修正) -->
+                <div id="cartItemsContainer" class="space-y-2 overflow-y-auto max-h-[360px] pr-1 min-h-[160px]">
+                    <div id="cartEmptyState" class="h-36 flex flex-col items-center justify-center text-zinc-500 space-y-2">
                         <i class="fa-solid fa-utensils text-2xl opacity-40"></i>
-                        <p class="text-xs">追加された串がここに一覧で表示されます</p>
+                        <p class="text-xs">追加された串がここに表示されます</p>
                     </div>
                 </div>
 
@@ -258,7 +265,7 @@ function doPost(e) {
             if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
 
             cart.push({ ...currentOrder });
-            showToast(`${currentOrder.type} (${currentOrder.flavor}/${currentOrder.topping}) をリストに追加しました`);
+            showToast(`${currentOrder.type} (${currentOrder.flavor}/${currentOrder.topping}) を追加`);
             
             resetSelectionForm();
             renderCart();
@@ -280,7 +287,7 @@ function doPost(e) {
             const submitBtn = document.getElementById('submitOrderBtn');
             const badge = document.getElementById('cartCountBadge');
 
-            badge.textContent = `${cart.length} 本`;
+            badge.textContent = `${cart.length} 食`;
 
             if (cart.length === 0) {
                 container.innerHTML = '';
@@ -294,6 +301,7 @@ function doPost(e) {
             emptyState.classList.add('hidden');
             container.innerHTML = '';
 
+            // リスト描画（item.typeを正確に参照）
             cart.forEach((item, index) => {
                 const el = document.createElement('div');
                 el.className = "bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex items-center justify-between";
