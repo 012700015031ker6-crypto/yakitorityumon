@@ -11,9 +11,8 @@
         body { background-color: #0f0f10; color: #f4f4f5; font-family: 'Noto Sans JP', sans-serif; }
         .wood-texture { background-color: #24140b; background-image: radial-gradient(#3d2314 1px, transparent 1px); background-size: 16px 16px; }
         .active-btn { border-color: #fbbf24 !important; background-color: rgba(251, 191, 36, 0.2) !important; color: #fbbf24 !important; box-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
-        
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #18181b; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
     </style>
 </head>
@@ -34,7 +33,7 @@
                     <span class="w-2 h-2 mr-2 rounded-full bg-red-500 animate-pulse"></span>GAS未設定
                 </span>
                 <button onclick="openGasModal()" class="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-amber-700 rounded-lg text-xs font-bold transition">
-                    <i class="fa-solid fa-gear mr-1"></i>連携設定 & GASコード
+                    <i class="fa-solid fa-gear mr-1"></i>連携設定
                 </button>
             </div>
         </div>
@@ -100,24 +99,19 @@
             <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800 shadow-xl flex flex-col">
                 <div class="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
                     <h2 class="font-bold text-base text-white flex items-center">
-                        <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文（1客分）
+                        <i class="fa-solid fa-receipt text-amber-500 mr-2"></i>現在の注文リスト
                     </h2>
                     <span id="cartCountBadge" class="bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold px-2.5 py-0.5 rounded-full">0 食</span>
                 </div>
 
-                <!-- リスト一覧エリア -->
-                <div id="cartList" class="space-y-2 overflow-y-auto max-h-[400px] min-h-[200px] pr-1">
-                    <div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl">
-                        <i class="fa-solid fa-utensils text-2xl opacity-40"></i>
-                        <p class="text-xs">追加された串がここに表示されます</p>
-                    </div>
-                </div>
+                <!-- リスト描画枠 -->
+                <div id="cartList" class="space-y-2 overflow-y-auto max-h-[420px] min-h-[180px] pr-1"></div>
 
                 <div class="border-t border-zinc-800 pt-4 mt-3 space-y-2">
                     <button type="button" id="submitOrderBtn" onclick="submitOrder()" disabled class="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-paper-plane"></i> 注文を確定して送信
                     </button>
-                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストをクリア</button>
+                    <button type="button" onclick="clearCart()" class="w-full py-2 text-xs text-zinc-500 hover:text-zinc-300 transition">リストを全消去</button>
                 </div>
             </div>
         </section>
@@ -145,7 +139,7 @@
     <div id="toast" class="fixed bottom-5 right-5 z-50 bg-zinc-800 border border-amber-500 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none text-xs font-bold"></div>
 
     <script>
-        // グローバル変数として注文カートを保持（ボタンを押すたびにクリアされないようにする）
+        // 大事な注文データをグローバルで保持
         var cart = [];
         var currentOrder = { type: null, flavor: null, topping: null };
         var gasUrl = localStorage.getItem('yakitori_gas_url') || '';
@@ -223,12 +217,13 @@
             updatePreview();
         }
 
+        // リスト追加処理
         function addItemToCart() {
             if (!currentOrder.type) return showToast('1. 種類を選択してください');
             if (!currentOrder.flavor) return showToast('2. 味を選択してください');
             if (!currentOrder.topping) return showToast('3. トッピングを選択してください');
 
-            // 配列に末尾追加
+            // カート配列に追加
             cart.push({
                 type: currentOrder.type,
                 flavor: currentOrder.flavor,
@@ -250,7 +245,7 @@
             updatePreview();
         }
 
-        // リスト再描画処理
+        // 画面のリストを全更新する描画ロジック
         function renderCart() {
             var listContainer = document.getElementById('cartList');
             var submitBtn = document.getElementById('submitOrderBtn');
@@ -261,7 +256,7 @@
             badge.textContent = cart.length + ' 食';
 
             if (cart.length === 0) {
-                listContainer.innerHTML = '<div id="cartEmptyState" class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl"><i class="fa-solid fa-utensils text-2xl opacity-40"></i><p class="text-xs">追加された串がここに表示されます</p></div>';
+                listContainer.innerHTML = '<div class="h-40 flex flex-col items-center justify-center text-zinc-500 space-y-2 border border-dashed border-zinc-800 rounded-xl"><i class="fa-solid fa-utensils text-2xl opacity-40"></i><p class="text-xs">追加された串がここに表示されます</p></div>';
                 submitBtn.disabled = true;
                 submitBtn.className = "w-full py-4 bg-zinc-800 text-zinc-500 font-black text-base rounded-xl border border-zinc-700 flex items-center justify-center gap-2 cursor-not-allowed";
                 return;
@@ -270,8 +265,7 @@
             var html = '';
             for (var i = 0; i < cart.length; i++) {
                 var item = cart[i];
-                // item.type を直接参照して undefined を解消
-                html += '<div class="bg-zinc-950 border border-amber-900/40 rounded-xl p-3 flex items-center justify-between shadow-md">';
+                html += '<div class="bg-zinc-950 border border-amber-900/40 rounded-xl p-3 flex items-center justify-between shadow-md mb-2">';
                 html += '  <div class="flex items-center space-x-3">';
                 html += '    <div class="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-black text-xs shrink-0">' + (i + 1) + '</div>';
                 html += '    <div>';
@@ -323,7 +317,7 @@
 
                 var result = await response.json();
                 if (result.status === 'success') {
-                    showToast('スプレッドシートへ送信が完了しました！');
+                    showToast('スプレッドシートへ送信完了！');
                     cart = [];
                     renderCart();
                     resetSelectionForm();
